@@ -1,0 +1,19 @@
+
+# Playwright
+node_modules/
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+/playwright/.auth/
+
+# Python
+__pycache__/
+*.pyc
+
+# Claude Code 本地设置（每台机器不同，不上传）
+.claude/settings.local.json
+
+# 截图输出
+/screenshots/
+/auth_state.json

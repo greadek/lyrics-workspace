@@ -1,0 +1,11 @@
+# Install with:
+#   pip install -r requirements.txt
+#   playwright install chromium
+#
+# Run tests with:
+#   python -m pytest test_example.py
+#   python -m pytest test_example.py --headed
+#   python -m pytest test_example.py --browser chromium --browser firefox
+pytest>=8.0
+playwright>=1.40
+pytest-playwright>=0.4.3
