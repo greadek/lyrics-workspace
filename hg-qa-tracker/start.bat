@@ -1,20 +1,18 @@
 @echo off
-chcp 65001 >nul
 echo ========================================
-echo   鹰角网络 QA 岗位追踪系统
 echo   Hypergryph QA Job Tracker
 echo ========================================
 echo.
-echo 正在启动服务...
-echo 浏览器访问: http://localhost:8765
-echo 按 Ctrl+C 停止服务
+echo Starting server...
+echo Browser access: http://localhost:8765
+echo Press Ctrl+C to stop the server.
 echo.
 cd /d "%~dp0backend"
 
-REM 优先使用本机真实 Python（避免 py 启动器缺失问题）
+REM Use the real Python path first (py launcher may not exist on this machine)
 if exist "E:\Python Learing\Python 3\python.exe" (
-    "E:\Python Learing\Python 3\python.exe" -m uvicorn main:app --host 0.0.0.0 --port 8765
+    "E:\Python Learing\Python 3\python.exe" -m uvicorn main:app --host 127.0.0.1 --port 8765
 ) else (
-    py -3 -m uvicorn main:app --host 0.0.0.0 --port 8765
+    py -3 -m uvicorn main:app --host 127.0.0.1 --port 8765
 )
 pause
