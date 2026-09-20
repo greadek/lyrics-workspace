@@ -4,415 +4,641 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>招聘岗位追踪 · QA / 测试开发</title>
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
 <script src="https://unpkg.com/vue@3.5.13/dist/vue.global.prod.js"></script>
 <style>
-/* ═══════════════════════════════════════════════════════════
-   QA / 测试开发 招聘岗位追踪 — 前端界面
-   设计风格：暗色主题 + 品牌橙
-   ═══════════════════════════════════════════════════════════ */
+/* ============================================================
+   QA / 测试开发 招聘岗位追踪 - 前端界面
+   设计：暗色科技 · 单强调色(橙) · 中性锌灰底 · 原生 CSS + Vue CDN
+   Dials: VARIANCE 4 / MOTION 3 / DENSITY 6
+   ============================================================ */
 :root {
-  --bg: #0f0f14;
-  --bg-card: #1a1a24;
-  --bg-card-hover: #222230;
-  --border: #2a2a3a;
-  --text: #e0e0e8;
-  --text-muted: #8888a0;
-  --orange: #f5a623;
-  --orange-glow: rgba(245,166,35,0.15);
-  --blue: #4a9eff;
-  --green: #4ade80;
-  --red: #f87171;
-  --purple: #a78bfa;
-  --radius: 10px;
+  --bg: #0b0b0f;
+  --surface: #12121a;
+  --surface-2: #171722;
+  --surface-3: #1e1e2a;
+  --border: #23232e;
+  --border-strong: #31313e;
+  --text: #ededf3;
+  --text-2: #b3b3c0;
+  --text-3: #76768a;
+  --accent: #f59e42;
+  --accent-strong: #ff8a3d;
+  --accent-ink: #201200;          /* accent 背景上的文字 */
+  --accent-soft: rgba(245,158,66,.1);
+  --ok: #34d399;
+  --err: #f87171;
+  --warn: #fbbf24;
+  --radius: 12px;
+  --radius-sm: 8px;
+  --font: "Segoe UI Variable","Segoe UI",-apple-system,BlinkMacSystemFont,
+    "PingFang SC","HarmonyOS Sans SC","Microsoft YaHei","Helvetica Neue",Arial,sans-serif;
 }
-* { margin:0; padding:0; box-sizing:border-box; }
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { color-scheme: dark; }
 body {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
-    "Microsoft YaHei", "Helvetica Neue", sans-serif;
+  font-family: var(--font);
   background: var(--bg);
   color: var(--text);
-  min-height: 100vh;
   line-height: 1.6;
+  min-height: 100vh;
 }
+a { color: inherit; }
+button { font-family: inherit; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
-/* ── 顶部导航 ─────────────────────────────── */
-header {
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f0f14 100%);
-  border-bottom: 2px solid var(--orange);
+.shell { max-width: 1240px; margin: 0 auto; padding: 0 20px; }
+
+/* ---------- 顶栏 ---------- */
+.topbar {
   position: sticky; top: 0; z-index: 100;
-  backdrop-filter: blur(12px);
+  height: 64px;
+  background: rgba(11,11,15,.82);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--border);
 }
-.header-inner {
-  max-width: 1320px; margin: 0 auto;
-  padding: 16px 24px;
-  display: flex; align-items: center; justify-content: space-between;
-  flex-wrap: wrap; gap: 12px;
+.topbar-inner {
+  max-width: 1240px; height: 100%; margin: 0 auto; padding: 0 20px;
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
 }
-.logo-area { display: flex; align-items: center; gap: 12px; }
-.logo-icon {
-  width: 42px; height: 42px;
-  background: linear-gradient(135deg, var(--orange), #ff6b35);
-  border-radius: 10px;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 22px;
+.brand { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.brand-mark {
+  width: 36px; height: 36px; flex: none;
+  display: grid; place-items: center;
+  border-radius: 9px;
+  background: linear-gradient(135deg, var(--accent), var(--accent-strong));
+  color: var(--accent-ink);
+  font-size: 18px;
 }
-.logo-text h1 { font-size: 20px; font-weight: 700; letter-spacing: 0.5px; }
-.logo-text span { font-size: 12px; color: var(--text-muted); }
-.status-badge {
-  display: flex; align-items: center; gap: 6px;
-  font-size: 13px; color: var(--text-muted);
-  background: var(--bg-card); padding: 6px 14px; border-radius: 20px;
-  border: 1px solid var(--border);
-}
-.status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); }
-.status-dot.loading { background: var(--orange); animation: pulse 1.2s infinite; }
-@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
-
-/* ── 搜索栏 ───────────────────────────────── */
-.search-bar {
-  max-width: 1320px; margin: 24px auto 0; padding: 0 24px;
-  display: flex; gap: 12px; flex-wrap: wrap; align-items: center;
-}
-.search-input {
-  flex: 1; min-width: 240px;
-  background: var(--bg-card); border: 1px solid var(--border);
-  color: var(--text); padding: 12px 18px; border-radius: 25px;
-  font-size: 15px; outline: none; transition: border .2s;
-}
-.search-input:focus { border-color: var(--orange); }
-.search-input::placeholder { color: var(--text-muted); }
-.filter-group { display: flex; gap: 8px; flex-wrap: wrap; }
-.filter-btn {
-  padding: 8px 18px; border-radius: 20px; border: 1px solid var(--border);
-  background: var(--bg-card); color: var(--text-muted);
-  font-size: 13px; cursor: pointer; transition: all .2s;
+.brand-text h1 { font-size: 17px; font-weight: 700; letter-spacing: .01em; line-height: 1.2; }
+.brand-text span { font-size: 11px; color: var(--text-3); }
+.live {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 12.5px; color: var(--text-2);
+  padding: 6px 14px; border: 1px solid var(--border);
+  border-radius: 999px; background: var(--surface);
   white-space: nowrap;
 }
-.filter-btn:hover { border-color: var(--orange); color: var(--text); }
-.filter-btn.active { background: var(--orange); color: #000; border-color: var(--orange); font-weight: 600; }
-.refresh-btn {
-  padding: 10px 20px; border-radius: 20px;
-  background: transparent; border: 1px solid var(--orange);
-  color: var(--orange); font-size: 13px; cursor: pointer;
-  transition: all .2s; white-space: nowrap;
-}
-.refresh-btn:hover { background: var(--orange-glow); }
+.live-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--ok); flex: none; }
+.live-dot.pulse { background: var(--accent); animation: pulse 1.2s ease-in-out infinite; }
+@keyframes pulse { 0%,100% { opacity: 1 } 50% { opacity: .25 } }
 
-/* ── 统计栏 ───────────────────────────────── */
-.stats-row {
-  max-width: 1320px; margin: 20px auto 0; padding: 0 24px;
-  display: flex; gap: 16px; flex-wrap: wrap;
+/* ---------- 控制区 ---------- */
+.controls {
+  margin-top: 22px;
+  display: flex; gap: 10px; flex-wrap: wrap; align-items: center;
 }
-.stat-card {
-  flex: 1; min-width: 140px;
-  background: var(--bg-card); border: 1px solid var(--border);
-  border-radius: var(--radius); padding: 14px 18px;
-  display: flex; flex-direction: column; gap: 4px;
-}
-.stat-card .num { font-size: 28px; font-weight: 700; color: var(--orange); }
-.stat-card .label { font-size: 12px; color: var(--text-muted); }
-
-/* ── 数据源健康面板 ──────────────────────────── */
-.health-panel {
-  max-width: 1320px; margin: 16px auto 0; padding: 0 24px;
-  display: flex; gap: 12px; flex-wrap: wrap;
-}
-.health-item {
+.search {
   flex: 1; min-width: 220px;
-  background: var(--bg-card); border: 1px solid var(--border);
+  display: flex; align-items: center; gap: 8px;
+  padding: 0 14px; height: 42px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 10px; color: var(--text-3);
+  transition: border-color .18s, box-shadow .18s;
+}
+.search:focus-within { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.search i { font-size: 16px; }
+.search input {
+  flex: 1; min-width: 0; height: 100%;
+  background: none; border: 0; outline: none;
+  color: var(--text); font-size: 14px; font-family: var(--font);
+}
+.search input::placeholder { color: var(--text-3); }
+
+.filter-group { display: flex; gap: 6px; flex-wrap: wrap; }
+.filter-btn {
+  padding: 8px 14px; height: 42px;
+  background: var(--surface); border: 1px solid var(--border);
+  color: var(--text-2); border-radius: 10px;
+  font-size: 13px; cursor: pointer; white-space: nowrap;
+  transition: border-color .15s, color .15s, background .15s, transform .08s;
+}
+.filter-btn:hover { border-color: var(--border-strong); color: var(--text); }
+.filter-btn:active { transform: scale(.97); }
+.filter-btn.active {
+  background: var(--accent); border-color: var(--accent);
+  color: var(--accent-ink); font-weight: 600;
+}
+.btn-ghost {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 0 16px; height: 42px;
+  background: transparent; border: 1px solid var(--accent);
+  color: var(--accent); border-radius: 10px;
+  font-size: 13px; font-weight: 600; cursor: pointer;
+  transition: background .15s, transform .08s; white-space: nowrap;
+}
+.btn-ghost:hover { background: var(--accent-soft); }
+.btn-ghost:active { transform: scale(.97); }
+.btn-ghost:disabled { opacity: .55; cursor: default; }
+.btn-ghost i { font-size: 15px; }
+.spin { animation: rotate 1s linear infinite; }
+@keyframes rotate { to { transform: rotate(360deg) } }
+
+/* ---------- 统计 ---------- */
+.stats {
+  margin-top: 18px;
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 10px;
+}
+.stat {
+  background: var(--surface); border: 1px solid var(--border);
   border-radius: var(--radius); padding: 12px 16px;
 }
-.health-item .name {
-  font-size: 13px; font-weight: 600; color: #fff;
-  display: flex; align-items: center; gap: 8px;
+.stat-num {
+  font-size: 23px; font-weight: 650; letter-spacing: -.01em;
+  line-height: 1.15; font-variant-numeric: tabular-nums;
 }
-.health-item .status-dot { width: 8px; height: 8px; border-radius: 50%; }
-.health-item .status-dot.ok { background: var(--green); }
-.health-item .status-dot.error { background: var(--red); }
-.health-item .status-dot.not_fetched { background: var(--text-muted); }
-.health-item .meta {
-  font-size: 11px; color: var(--text-muted); margin-top: 6px;
-  display: flex; gap: 12px; flex-wrap: wrap;
+.stat:first-child .stat-num { color: var(--accent); }
+.stat-label { font-size: 11.5px; color: var(--text-3); margin-top: 2px; }
+
+/* ---------- 数据源健康 ---------- */
+.health {
+  margin-top: 12px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
 }
-.health-item .error-text {
-  font-size: 11px; color: var(--red); margin-top: 4px;
-  word-break: break-all;
+.health-row {
+  display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+  padding: 9px 16px; font-size: 12.5px;
+}
+.health-row + .health-row { border-top: 1px solid var(--border); }
+.health-dot { width: 8px; height: 8px; border-radius: 50%; flex: none; }
+.health-dot.ok { background: var(--ok); }
+.health-dot.error { background: var(--err); }
+.health-dot.not_fetched { background: var(--text-3); }
+.health-name { font-weight: 600; color: var(--text); min-width: 64px; }
+.health-cell { color: var(--text-2); display: inline-flex; align-items: center; gap: 5px; font-variant-numeric: tabular-nums; }
+.health-cell i { font-size: 13px; color: var(--text-3); }
+.health-error {
+  color: var(--err); font-size: 12px;
+  max-width: 460px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 
-/* ── 岗位列表 ──────────────────────────────── */
-.jobs-container {
-  max-width: 1320px; margin: 20px auto 40px; padding: 0 24px;
-  display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
-  gap: 16px;
+/* ---------- 岗位网格 ---------- */
+.jobs {
+  margin-top: 18px; padding-bottom: 48px;
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+  gap: 12px;
 }
-
-/* ── 岗位卡片 ──────────────────────────────── */
 .job-card {
-  background: var(--bg-card); border: 1px solid var(--border);
-  border-radius: var(--radius); padding: 20px 22px;
-  cursor: pointer; transition: all .25s;
-  display: flex; flex-direction: column; gap: 12px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 18px 20px;
+  display: flex; flex-direction: column; gap: 10px;
+  cursor: pointer;
+  transition: border-color .18s, background .18s, transform .08s;
 }
-.job-card:hover { background: var(--bg-card-hover); border-color: var(--orange); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,.4); }
-.job-card.expanded { border-color: var(--orange); background: var(--bg-card-hover); }
-.card-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
-.card-title { font-size: 16px; font-weight: 600; line-height: 1.4; color: #fff; }
-.card-meta { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 4px; }
-.tag {
-  display: inline-block; padding: 3px 10px; border-radius: 12px;
-  font-size: 11px; font-weight: 500; white-space: nowrap;
-}
-.tag-project { background: rgba(74,158,255,0.15); color: var(--blue); }
-.tag-direction { background: rgba(74,222,128,0.12); color: var(--green); }
-.tag-level { background: rgba(245,166,35,0.12); color: var(--orange); }
-.tag-subsidiary { background: rgba(248,113,113,0.12); color: var(--red); }
-.tag-source { background: rgba(167,139,250,0.15); color: var(--purple); }
-.card-info { display: flex; gap: 16px; font-size: 12px; color: var(--text-muted); flex-wrap: wrap; }
-.card-info span { display: flex; align-items: center; gap: 4px; }
+.job-card:hover { background: var(--surface-2); border-color: var(--border-strong); }
+.job-card:active { transform: scale(.995); }
+.job-card.expanded { border-color: var(--accent); background: var(--surface-2); }
 
-/* ── 详情展开区 ────────────────────────────── */
+.card-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.job-title { font-size: 15.5px; font-weight: 650; line-height: 1.45; letter-spacing: .005em; }
+.company {
+  flex: none; font-size: 11px; font-weight: 600; color: var(--accent);
+  padding: 3px 10px; border: 1px solid var(--accent); border-radius: 999px;
+  background: var(--accent-soft); white-space: nowrap;
+}
+.tag-row { display: flex; gap: 6px; flex-wrap: wrap; }
+.tag {
+  font-size: 11px; padding: 3px 10px; border-radius: 999px;
+  background: var(--surface-3); color: var(--text-2);
+  border: 1px solid transparent; white-space: nowrap;
+}
+.tag-dim { background: transparent; border-color: var(--border); color: var(--text-3); }
+.tag-warn { background: rgba(251,191,36,.1); color: var(--warn); }
+.job-meta {
+  display: flex; gap: 14px; flex-wrap: wrap;
+  font-size: 12px; color: var(--text-3);
+}
+.job-meta span { display: inline-flex; align-items: center; gap: 5px; font-variant-numeric: tabular-nums; }
+.job-meta i { font-size: 13px; color: var(--text-3); }
+
+/* ---------- 详情展开 ---------- */
 .job-detail {
-  margin-top: 8px; padding-top: 14px;
+  margin-top: 4px; padding-top: 12px;
   border-top: 1px solid var(--border);
   display: none;
 }
-.job-card.expanded .job-detail { display: block; }
-.detail-section { margin-bottom: 14px; }
-.detail-section h4 {
-  font-size: 13px; color: var(--orange); margin-bottom: 8px;
-  display: flex; align-items: center; gap: 6px;
+.job-card.expanded .job-detail { display: block; animation: reveal .22s ease; }
+@keyframes reveal { from { opacity: 0; transform: translateY(-4px) } to { opacity: 1; transform: none } }
+.detail-sec { margin-bottom: 12px; }
+.detail-sec h3 {
+  display: flex; align-items: center; gap: 7px;
+  font-size: 12.5px; font-weight: 650; color: var(--text-2);
+  margin-bottom: 7px;
 }
-.detail-section ul { list-style: none; padding: 0; }
-.detail-section li {
-  position: relative; padding-left: 16px; margin-bottom: 8px;
-  font-size: 13px; color: var(--text); line-height: 1.5;
+.detail-sec h3 i { color: var(--accent); font-size: 14px; }
+.detail-sec ul { list-style: none; }
+.detail-sec li {
+  position: relative; padding-left: 15px; margin-bottom: 6px;
+  font-size: 12.5px; color: var(--text-2); line-height: 1.55;
 }
-.detail-section li::before {
-  content: "▸"; position: absolute; left: 0;
-  color: var(--orange); font-size: 10px; top: 1px;
+.detail-sec li::before {
+  content: ""; position: absolute; left: 2px; top: 8px;
+  width: 5px; height: 5px; border-radius: 50%;
+  background: var(--text-3);
 }
-.detail-section .source-note {
-  font-size: 11px; color: var(--text-muted); font-style: italic;
+.detail-sec .note {
+  display: flex; gap: 8px; align-items: flex-start;
+  font-size: 12px; color: var(--text-3); line-height: 1.55;
 }
-.apply-btn {
-  display: inline-flex; align-items: center; gap: 6px;
-  margin-top: 8px; padding: 10px 22px;
-  background: linear-gradient(135deg, var(--orange), #ff6b35);
-  color: #000; border-radius: 22px; font-size: 13px; font-weight: 600;
-  text-decoration: none; transition: all .2s;
+.detail-sec .note i { color: var(--warn); font-size: 14px; margin-top: 2px; flex: none; }
+.btn-primary {
+  display: inline-flex; align-items: center; gap: 8px;
+  margin-top: 6px; padding: 9px 18px;
+  background: linear-gradient(135deg, var(--accent), var(--accent-strong));
+  color: var(--accent-ink); border-radius: 10px;
+  font-size: 13px; font-weight: 700; text-decoration: none;
+  transition: transform .08s, filter .15s; white-space: nowrap;
 }
-.apply-btn:hover { transform: scale(1.04); box-shadow: 0 4px 16px var(--orange-glow); }
+.btn-primary:hover { filter: brightness(1.06); }
+.btn-primary:active { transform: scale(.98); }
+.btn-primary i { font-size: 14px; }
 
-/* ── 空状态 ───────────────────────────────── */
-.empty-state {
-  text-align: center; padding: 60px 20px; color: var(--text-muted);
+/* ---------- 骨架 / 空态 / 错误 ---------- */
+.job-card.skeleton { pointer-events: none; gap: 12px; }
+.sk {
+  border-radius: 6px; background: var(--surface-3);
+  animation: shimmer 1.4s ease-in-out infinite;
+}
+.sk-title { height: 16px; width: 70%; }
+.sk-tags { height: 12px; width: 90%; }
+.sk-meta { height: 12px; width: 55%; }
+@keyframes shimmer { 0%,100% { opacity: .5 } 50% { opacity: 1 } }
+.state {
   grid-column: 1 / -1;
+  display: flex; flex-direction: column; align-items: center; gap: 12px;
+  padding: 72px 20px; color: var(--text-3);
+  text-align: center;
 }
-.empty-state .icon { font-size: 48px; margin-bottom: 12px; }
-.empty-state p { font-size: 15px; }
+.state-icon { font-size: 44px; color: var(--border-strong); }
+.state p { font-size: 14px; }
 
-/* ── 页脚 ─────────────────────────────────── */
-footer {
-  text-align: center; padding: 20px; color: var(--text-muted);
-  font-size: 12px; border-top: 1px solid var(--border);
-  max-width: 1320px; margin: 0 auto;
+/* ---------- 页脚 ---------- */
+footer { border-top: 1px solid var(--border); padding: 20px 0 28px; }
+.footer-inner {
+  max-width: 1240px; margin: 0 auto; padding: 0 20px;
+  display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+  font-size: 12px; color: var(--text-3);
 }
-footer a { color: var(--orange); text-decoration: none; }
+.footer-links { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.footer-label { color: var(--text-3); }
+.footer-links a { color: var(--text-2); text-decoration: none; transition: color .15s; }
+.footer-links a:hover { color: var(--accent); }
+.footer-time { font-variant-numeric: tabular-nums; }
 
-/* ── 响应式 ───────────────────────────────── */
+/* ---------- 响应式 ---------- */
 @media (max-width: 768px) {
-  .header-inner { padding: 12px 16px; }
-  .logo-text h1 { font-size: 17px; }
-  .jobs-container { grid-template-columns: 1fr; padding: 0 12px; }
-  .search-bar { padding: 0 12px; }
-  .stats-row { padding: 0 12px; }
-  .stat-card { min-width: 100px; }
-  .stat-card .num { font-size: 22px; }
+  .shell { padding: 0 12px; }
+  .topbar-inner { padding: 0 12px; }
+  .jobs { grid-template-columns: 1fr; }
+  .footer-inner { flex-direction: column; align-items: flex-start; gap: 8px; }
+  .brand-text span { display: none; }
+}
+
+/* ---------- 登录 ---------- */
+.boot {
+  display: flex; align-items: center; justify-content: center; gap: 9px;
+  min-height: 60vh; color: var(--text-3); font-size: 13px;
+}
+.login-wrap {
+  display: grid; place-items: center;
+  min-height: calc(100vh - 64px); padding: 40px 20px;
+}
+.login-card {
+  width: 100%; max-width: 380px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 32px 30px;
+  animation: reveal .24s ease;
+}
+.login-head {
+  display: flex; align-items: center; gap: 12px;
+  margin-bottom: 24px;
+}
+.login-head h1 { font-size: 17px; font-weight: 650; letter-spacing: .005em; }
+.login-head p { font-size: 12px; color: var(--text-3); margin-top: 2px; }
+.login-field { display: block; margin-bottom: 14px; }
+.login-field span {
+  display: block; margin-bottom: 6px;
+  font-size: 12px; font-weight: 600; color: var(--text-2);
+}
+.login-field input {
+  width: 100%; height: 42px; padding: 0 14px;
+  background: var(--surface-2); border: 1px solid var(--border);
+  border-radius: 10px; color: var(--text);
+  font-family: inherit; font-size: 13.5px;
+  transition: border-color .18s, box-shadow .18s;
+}
+.login-field input:focus {
+  outline: none; border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+.login-submit {
+  width: 100%; justify-content: center;
+  margin-top: 10px; height: 42px; border: none; cursor: pointer;
+}
+.login-submit:disabled { opacity: .55; cursor: not-allowed; }
+.login-error {
+  display: flex; align-items: center; gap: 7px;
+  margin-top: 14px; font-size: 12.5px; color: var(--err);
+}
+.login-hint {
+  margin-top: 20px; padding-top: 16px;
+  border-top: 1px solid var(--border);
+  font-size: 11.5px; color: var(--text-3); text-align: center;
+}
+.login-hint code {
+  font-family: ui-monospace, Consolas, monospace;
+  color: var(--text-2); background: var(--surface-3);
+  padding: 2px 6px; border-radius: 5px;
+}
+
+/* 顶栏用户区 */
+.topbar-right { display: flex; align-items: center; gap: 10px; }
+.user-chip {
+  display: flex; align-items: center; gap: 7px;
+  font-size: 12.5px; color: var(--text-2);
+  padding: 6px 14px; border: 1px solid var(--border);
+  border-radius: 999px; background: var(--surface);
+  white-space: nowrap;
+}
+.btn-icon {
+  display: grid; place-items: center;
+  width: 32px; height: 32px; flex: none;
+  background: transparent; border: 1px solid var(--border);
+  border-radius: 8px; color: var(--text-3);
+  font-size: 15px; cursor: pointer;
+  transition: color .15s, border-color .15s, background .15s;
+}
+.btn-icon:hover {
+  color: var(--accent); border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+/* 窄屏：顶栏多了用户区，收起"岗位数"状态（统计行里有同样信息）以免溢出 */
+@media (max-width: 768px) {
+  .live { display: none; }
+  .topbar-right { gap: 8px; }
+  .login-card { padding: 26px 20px; }
+  .login-wrap { min-height: calc(100vh - 56px); }
+}
+
+/* ---------- 无障碍：减少动效 ---------- */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
 }
 </style>
 </head>
 <body>
 
 <div id="app">
-  <!-- ═══════════ 顶部导航 ═══════════ -->
-  <header>
-    <div class="header-inner">
-      <div class="logo-area">
-        <div class="logo-icon">🎯</div>
-        <div class="logo-text">
-          <h1>招聘岗位追踪 · QA / 测试开发</h1>
-          <span>Quality Assurance Recruitment Tracker</span>
+  <!-- 顶栏 -->
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">
+        <span class="brand-mark"><i class="ph ph-briefcase"></i></span>
+        <div class="brand-text">
+          <h1>招聘岗位追踪</h1>
+          <span>QA / 测试开发 · 多公司实时聚合</span>
         </div>
       </div>
-      <div class="status-badge">
-        <span class="status-dot" :class="{ loading }"></span>
-        {{ statusText }}
+      <div class="topbar-right" v-if="authed">
+        <div class="live">
+          <span class="live-dot" :class="{ pulse: loading }"></span>
+          {{ statusText }}
+        </div>
+        <div class="user-chip">
+          <i class="ph ph-user"></i>{{ currentUser }}
+        </div>
+        <button class="btn-icon" @click="doLogout" title="退出登录" aria-label="退出登录">
+          <i class="ph ph-sign-out"></i>
+        </button>
       </div>
     </div>
   </header>
 
-  <!-- ═══════════ 搜索与过滤 ═══════════ -->
-  <div class="search-bar">
-    <input
-      class="search-input"
-      type="text"
-      v-model="searchQuery"
-      placeholder="🔍 搜索岗位 — 输入关键词（如：终末地、性能、资深、UE…）"
-      @input="onSearchChange"
-    />
-    <div class="filter-group">
-      <button
-        v-for="opt in companyOptions" :key="opt"
-        class="filter-btn" :class="{ active: activeCompany === opt }"
-        @click="toggleCompany(opt)"
-      >{{ opt }}</button>
-    </div>
-    <div class="filter-group">
-      <button
-        v-for="opt in projectOptions" :key="opt"
-        class="filter-btn" :class="{ active: activeProject === opt }"
-        @click="toggleProject(opt)"
-      >{{ opt }}</button>
-    </div>
-    <div class="filter-group">
-      <button
-        v-for="opt in levelOptions" :key="opt"
-        class="filter-btn" :class="{ active: activeLevel === opt }"
-        @click="toggleLevel(opt)"
-      >{{ opt }}</button>
-    </div>
-    <button class="refresh-btn" @click="refreshData" :disabled="loading">
-      {{ loading ? '刷新中…' : '🔄 刷新数据' }}
-    </button>
+  <!-- 会话校验中 -->
+  <div class="boot" v-if="authed === null">
+    <i class="ph ph-circle-notch"></i>正在验证会话
   </div>
 
-  <!-- ═══════════ 统计栏 ═══════════ -->
-  <div class="stats-row">
-    <div class="stat-card">
-      <span class="num">{{ filteredJobs.length }}</span>
-      <span class="label">当前匹配岗位</span>
-    </div>
-    <div class="stat-card" v-for="c in companyNames" :key="c">
-      <span class="num">{{ stats.by_company?.[c] || 0 }}</span>
-      <span class="label">{{ c }}</span>
-    </div>
-    <div class="stat-card">
-      <span class="num">{{ stats.by_level?.['资深/高级'] || 0 }}</span>
-      <span class="label">资深/高级岗位</span>
-    </div>
-    <div class="stat-card">
-      <span class="num">{{ stats.by_level?.['初中级'] || 0 }}</span>
-      <span class="label">初中级岗位</span>
-    </div>
-  </div>
-
-  <!-- ═══════════ 数据源健康 ═══════════ -->
-  <div class="health-panel">
-    <div class="health-item" v-for="src in healthSources" :key="src.key">
-      <div class="name">
-        <span class="status-dot" :class="src.status"></span>
-        {{ src.name }}
-      </div>
-      <div class="meta">
-        <span>岗位数: {{ src.job_count }}</span>
-        <span>耗时: {{ src.latency_ms != null ? src.latency_ms + 'ms' : '—' }}</span>
-        <span v-if="src.last_success_at">成功: {{ formatDateTime(src.last_success_at) }}</span>
-        <span v-else-if="src.status === 'not_fetched'">未抓取</span>
-      </div>
-      <div class="error-text" v-if="src.last_error">{{ src.last_error }}</div>
-    </div>
-  </div>
-
-  <!-- ═══════════ 岗位卡片列表 ═══════════ -->
-  <div class="jobs-container">
-    <div v-if="loading && filteredJobs.length === 0" class="empty-state">
-      <div class="icon">⏳</div>
-      <p>正在从各公司招聘系统获取最新岗位数据...</p>
-    </div>
-
-    <div v-else-if="filteredJobs.length === 0" class="empty-state">
-      <div class="icon">🔍</div>
-      <p>没有匹配的岗位，尝试调整筛选条件</p>
-    </div>
-
-    <div
-      v-for="job in filteredJobs" :key="job.id"
-      class="job-card"
-      :class="{ expanded: expandedId === job.id }"
-      @click="toggleExpand(job.id)"
-    >
-      <!-- 标题区 -->
-      <div class="card-header">
+  <!-- 登录页 -->
+  <section class="login-wrap" v-else-if="authed === false">
+    <form class="login-card" @submit.prevent="doLogin">
+      <div class="login-head">
+        <span class="brand-mark"><i class="ph ph-briefcase"></i></span>
         <div>
-          <div class="card-title">{{ job.title }}</div>
-          <div class="card-meta">
-            <span class="tag tag-source">{{ job.company }}</span>
-            <span class="tag tag-project">{{ job.project }}</span>
-            <span class="tag tag-direction">{{ job.direction }}</span>
-            <span class="tag tag-level">{{ job.level }}</span>
-            <span v-if="job.is_subsidiary" class="tag tag-subsidiary">子公司</span>
-          </div>
+          <h1>招聘岗位追踪</h1>
+          <p>请登录后查看数据</p>
         </div>
       </div>
 
-      <!-- 基本信息 -->
-      <div class="card-info">
-        <span>📍 {{ job.location?.city || job.location?.address || '—' }}</span>
-        <span>📅 {{ formatDate(job.opened_at) }}</span>
-        <span>🏷️ {{ job.mj_code || '-' }}</span>
-        <span>💼 {{ job.commitment }}</span>
+      <label class="login-field">
+        <span>用户名</span>
+        <input
+          type="text" v-model="loginUser" autocomplete="username"
+          autofocus required :disabled="loginBusy"
+        />
+      </label>
+
+      <label class="login-field">
+        <span>密码</span>
+        <input
+          type="password" v-model="loginPass" autocomplete="current-password"
+          required :disabled="loginBusy"
+        />
+      </label>
+
+      <button type="submit" class="btn-primary login-submit" :disabled="loginBusy">
+        <i class="ph" :class="loginBusy ? 'ph-circle-notch' : 'ph-sign-in'"></i>
+        {{ loginBusy ? '登录中' : '登录' }}
+      </button>
+
+      <p class="login-error" v-if="loginError">
+        <i class="ph ph-warning-circle"></i>{{ loginError }}
+      </p>
+
+      <p class="login-hint">默认账号 <code>admin</code> / <code>111111</code></p>
+    </form>
+  </section>
+
+  <template v-if="authed">
+  <main class="shell">
+    <!-- 搜索与过滤 -->
+    <div class="controls">
+      <label class="search">
+        <i class="ph ph-magnifying-glass"></i>
+        <input
+          type="text"
+          v-model="searchQuery"
+          placeholder="搜索岗位标题、方向或项目"
+          @input="onSearchChange"
+        />
+      </label>
+      <div class="filter-group">
+        <button
+          v-for="opt in companyOptions" :key="opt"
+          class="filter-btn" :class="{ active: activeCompany === opt }"
+          @click="toggleCompany(opt)"
+        >{{ opt }}</button>
       </div>
+      <div class="filter-group">
+        <button
+          v-for="opt in projectOptions" :key="opt"
+          class="filter-btn" :class="{ active: activeProject === opt }"
+          @click="toggleProject(opt)"
+        >{{ opt }}</button>
+      </div>
+      <div class="filter-group">
+        <button
+          v-for="opt in levelOptions" :key="opt"
+          class="filter-btn" :class="{ active: activeLevel === opt }"
+          @click="toggleLevel(opt)"
+        >{{ opt }}</button>
+      </div>
+      <button class="btn-ghost" @click="refreshData" :disabled="loading">
+        <i class="ph ph-arrows-clockwise" :class="{ spin: loading }"></i>
+        {{ loading ? '刷新中' : '刷新数据' }}
+      </button>
+    </div>
 
-      <!-- 详情展开区 -->
-      <div class="job-detail" @click.stop>
-        <!-- 岗位职责 -->
-        <div class="detail-section" v-if="job.detail?.responsibilities?.length">
-          <h4>📋 岗位职责</h4>
-          <ul>
-            <li v-for="(item, i) in job.detail.responsibilities" :key="'r'+i">{{ item }}</li>
-          </ul>
-        </div>
-
-        <!-- 任职要求 -->
-        <div class="detail-section" v-if="job.detail?.requirements?.length">
-          <h4>✅ 任职要求</h4>
-          <ul>
-            <li v-for="(item, i) in job.detail.requirements" :key="'q'+i">{{ item }}</li>
-          </ul>
-        </div>
-
-        <!-- 加分项 -->
-        <div class="detail-section" v-if="job.detail?.bonus?.length">
-          <h4>⭐ 加分项</h4>
-          <ul>
-            <li v-for="(item, i) in job.detail.bonus" :key="'b'+i">{{ item }}</li>
-          </ul>
-        </div>
-
-        <!-- 来源标注 -->
-        <div class="detail-section" v-if="job.detail?.source === 'inferred'">
-          <p class="source-note">
-            ⚠️ 该 JD 细节根据岗位标题和行业标准推断生成，仅供参考。建议访问官方页面获取完整准确的职位描述。
-          </p>
-        </div>
-
-        <!-- 申请链接 -->
-        <a :href="job.apply_url" target="_blank" class="apply-btn" @click.stop>
-          📝 查看岗位 & 投递
-        </a>
+    <!-- 统计 -->
+    <div class="stats">
+      <div class="stat">
+        <div class="stat-num">{{ filteredJobs.length }}</div>
+        <div class="stat-label">当前匹配岗位</div>
+      </div>
+      <div class="stat" v-for="c in companyNames" :key="c">
+        <div class="stat-num">{{ stats.by_company?.[c] || 0 }}</div>
+        <div class="stat-label">{{ c }}</div>
+      </div>
+      <div class="stat">
+        <div class="stat-num">{{ stats.by_level?.['资深/高级'] || 0 }}</div>
+        <div class="stat-label">资深 / 高级</div>
+      </div>
+      <div class="stat">
+        <div class="stat-num">{{ stats.by_level?.['初中级'] || 0 }}</div>
+        <div class="stat-label">初中级</div>
       </div>
     </div>
-  </div>
 
-  <!-- ═══════════ 页脚 ═══════════ -->
+    <!-- 数据源健康 -->
+    <div class="health" v-if="healthSources.length">
+      <div class="health-row" v-for="src in healthSources" :key="src.key">
+        <span class="health-dot" :class="src.status"></span>
+        <span class="health-name">{{ src.name }}</span>
+        <span class="health-cell">岗位数 {{ src.job_count }}</span>
+        <span class="health-cell"><i class="ph ph-clock"></i>{{ src.latency_ms != null ? src.latency_ms + 'ms' : '-' }}</span>
+        <span class="health-cell" v-if="src.last_success_at">更新 {{ formatDateTime(src.last_success_at) }}</span>
+        <span class="health-cell" v-else-if="src.status === 'not_fetched'">未抓取</span>
+        <span class="health-error" v-if="src.last_error" :title="src.last_error">{{ src.last_error }}</span>
+      </div>
+    </div>
+
+    <!-- 岗位列表 -->
+    <div class="jobs">
+      <!-- 首次加载骨架 -->
+      <div v-if="loading && allJobs.length === 0" class="job-card skeleton" v-for="i in 6" :key="'sk'+i">
+        <div class="sk sk-title"></div>
+        <div class="sk sk-tags"></div>
+        <div class="sk sk-meta"></div>
+      </div>
+
+      <!-- 错误态 -->
+      <div v-else-if="loadError" class="state">
+        <i class="ph ph-warning-circle state-icon"></i>
+        <p>数据加载失败：{{ loadError }}</p>
+        <button class="btn-ghost" @click="fetchJobs"><i class="ph ph-arrows-clockwise"></i>重试</button>
+      </div>
+
+      <!-- 空态 -->
+      <div v-else-if="filteredJobs.length === 0" class="state">
+        <i class="ph ph-binoculars state-icon"></i>
+        <p>没有匹配的岗位，试试调整筛选条件</p>
+      </div>
+
+      <!-- 岗位卡片 -->
+      <article
+        v-for="job in filteredJobs" :key="job.id"
+        class="job-card"
+        :class="{ expanded: expandedId === job.id }"
+        tabindex="0" role="button"
+        :aria-expanded="expandedId === job.id"
+        @click="toggleExpand(job.id)"
+        @keydown.enter="toggleExpand(job.id)"
+        @keydown.space.prevent="toggleExpand(job.id)"
+      >
+        <div class="card-head">
+          <h2 class="job-title">{{ job.title }}</h2>
+          <span class="company">{{ job.company }}</span>
+        </div>
+
+        <div class="tag-row">
+          <span class="tag" v-if="job.project && job.project !== '通用/未指定'">{{ job.project }}</span>
+          <span class="tag tag-dim">{{ job.direction }}</span>
+          <span class="tag tag-dim">{{ job.level }}</span>
+          <span class="tag tag-warn" v-if="job.is_subsidiary">子公司</span>
+        </div>
+
+        <div class="job-meta">
+          <span><i class="ph ph-map-pin"></i>{{ job.location?.city || job.location?.address || '-' }}</span>
+          <span><i class="ph ph-calendar-blank"></i>{{ formatDate(job.opened_at) }}</span>
+          <span v-if="job.mj_code"><i class="ph ph-hash"></i>{{ job.mj_code }}</span>
+          <span><i class="ph ph-briefcase"></i>{{ job.commitment }}</span>
+        </div>
+
+        <!-- 详情展开区 -->
+        <div class="job-detail" @click.stop>
+          <div class="detail-sec" v-if="job.detail?.responsibilities?.length">
+            <h3><i class="ph ph-list-checks"></i>岗位职责</h3>
+            <ul>
+              <li v-for="(item, i) in job.detail.responsibilities" :key="'r'+i">{{ item }}</li>
+            </ul>
+          </div>
+
+          <div class="detail-sec" v-if="job.detail?.requirements?.length">
+            <h3><i class="ph ph-check"></i>任职要求</h3>
+            <ul>
+              <li v-for="(item, i) in job.detail.requirements" :key="'q'+i">{{ item }}</li>
+            </ul>
+          </div>
+
+          <div class="detail-sec" v-if="job.detail?.bonus?.length">
+            <h3><i class="ph ph-sparkle"></i>加分项</h3>
+            <ul>
+              <li v-for="(item, i) in job.detail.bonus" :key="'b'+i">{{ item }}</li>
+            </ul>
+          </div>
+
+          <div class="detail-sec" v-if="job.detail?.source === 'inferred'">
+            <p class="note"><i class="ph ph-warning"></i>JD 细节根据岗位标题和行业标准推断生成，仅供参考。建议访问官方页面获取完整职位描述。</p>
+          </div>
+
+          <a class="btn-primary" :href="job.apply_url" target="_blank" rel="noopener" @click.stop>
+            查看岗位并投递 <i class="ph ph-arrow-up-right"></i>
+          </a>
+        </div>
+      </article>
+    </div>
+  </main>
+
+  <!-- 页脚 -->
   <footer>
-    数据来源：
-    <a href="https://career.hypergryph.com/" target="_blank">鹰角网络招聘官网</a> ·
-    <a href="https://careers.ctrip.com/" target="_blank">携程招聘</a> ·
-    <a href="https://jobs.bilibili.com/social" target="_blank">B站招聘</a> ·
-    <a href="https://job.xiaohongshu.com/" target="_blank">小红书招聘</a> ·
-    数据刷新时间：{{ stats.fetched_at ? formatDateTime(stats.fetched_at) : '—' }}
+    <div class="footer-inner">
+      <div class="footer-links">
+        <span class="footer-label">数据来源</span>
+        <a href="https://career.hypergryph.com/" target="_blank" rel="noopener">鹰角网络</a>
+        <a href="https://careers.ctrip.com/" target="_blank" rel="noopener">携程</a>
+        <a href="https://jobs.bilibili.com/social" target="_blank" rel="noopener">B站</a>
+        <a href="https://job.xiaohongshu.com/" target="_blank" rel="noopener">小红书</a>
+        <a href="https://career.fliggy.com/off-campus/position-list" target="_blank" rel="noopener">飞猪</a>
+      </div>
+      <span class="footer-time">数据刷新 {{ stats.fetched_at ? formatDateTime(stats.fetched_at) : '暂无' }}</span>
+    </div>
   </footer>
+  </template>
 </div>
 
 <script>
@@ -420,9 +646,10 @@ const { createApp, ref, computed, onMounted } = Vue;
 
 createApp({
   setup() {
-    // ── 状态 ──────────────────────────────────
+    // ---------- 状态 ----------
     const allJobs = ref([]);
     const loading = ref(false);
+    const loadError = ref(null);
     const expandedId = ref(null);
     const searchQuery = ref("");
     const activeCompany = ref("全部");
@@ -430,18 +657,26 @@ createApp({
     const activeLevel = ref(null);
     const stats = ref({});
     const healthSources = ref([]);
-    const companyOptions = ["全部", "鹰角网络", "携程", "B站", "小红书"];
-    const companyNames = ["鹰角网络", "携程", "B站", "小红书"];
+    const companyOptions = ["全部", "鹰角网络", "携程", "B站", "小红书", "飞猪"];
+    const companyNames = ["鹰角网络", "携程", "B站", "小红书", "飞猪"];
+
+    // 登录态：null=校验中, false=未登录, true=已登录
+    const authed = ref(null);
+    const currentUser = ref("");
+    const loginUser = ref("");
+    const loginPass = ref("");
+    const loginError = ref(null);
+    const loginBusy = ref(false);
     const projectOptions = ["明日方舟：终末地", "明日方舟", "UE项目（通用）", "森空岛"];
     const levelOptions = ["资深/高级", "初中级", "管理"];
 
-    // API 基础路径（同源部署；开发时可改为 http://localhost:8765）
+    // API 基础路径（同源部署）
     const API = "";
 
-    // ── 计算属性 ───────────────────────────────
+    // ---------- 计算属性 ----------
     const statusText = computed(() => {
-      if (loading.value) return "数据加载中…";
-      return `共追踪 ${allJobs.value.length} 个QA/测试开发岗位`;
+      if (loading.value) return "数据加载中";
+      return `共追踪 ${allJobs.value.length} 个岗位`;
     });
 
     const filteredJobs = computed(() => {
@@ -466,20 +701,102 @@ createApp({
       return jobs;
     });
 
-    // ── 方法 ──────────────────────────────────
+    // ---------- 方法 ----------
+    // 所有 /api 请求都走这里：带上同源 cookie，401 统一退回登录页
+    async function apiFetch(path, opts = {}) {
+      const resp = await fetch(`${API}${path}`, { credentials: "same-origin", ...opts });
+      if (resp.status === 401) {
+        authed.value = false;
+        currentUser.value = "";
+        throw new Error("UNAUTHORIZED");
+      }
+      return resp;
+    }
+
+    function isUnauthorized(e) {
+      return e && e.message === "UNAUTHORIZED";
+    }
+
+    async function bootstrap() {
+      try {
+        const resp = await fetch(`${API}/api/auth/me`, { credentials: "same-origin" });
+        if (!resp.ok) {
+          authed.value = false;
+          return;
+        }
+        const data = await resp.json();
+        currentUser.value = data.username || "";
+        authed.value = true;
+        // 先确认会话再拉数据，避免未登录时触发一批 401
+        await Promise.all([fetchJobs(), fetchHealth()]);
+      } catch (e) {
+        authed.value = false;
+      }
+    }
+
+    async function doLogin() {
+      if (loginBusy.value) return;
+      loginBusy.value = true;
+      loginError.value = null;
+      try {
+        // 用裸 fetch 而非 apiFetch：这里的 401 是"口令错"，
+        // 不该被 apiFetch 当成"会话过期"而清空页面状态
+        const resp = await fetch(`${API}/api/auth/login`, {
+          method: "POST",
+          credentials: "same-origin",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ username: loginUser.value, password: loginPass.value }),
+        });
+        if (!resp.ok) {
+          loginError.value =
+            resp.status === 429 ? "尝试次数过多，请稍后再试" : "用户名或密码错误";
+          return;
+        }
+        const data = await resp.json();
+        currentUser.value = data.username || loginUser.value;
+        loginPass.value = "";
+        authed.value = true;
+        await Promise.all([fetchJobs(), fetchHealth()]);
+      } catch (e) {
+        loginError.value = "无法连接服务器";
+      } finally {
+        loginBusy.value = false;
+      }
+    }
+
+    async function doLogout() {
+      try {
+        await fetch(`${API}/api/auth/logout`, {
+          method: "POST",
+          credentials: "same-origin",
+        });
+      } catch (e) {
+        /* 忽略：本地状态照常清空 */
+      }
+      authed.value = false;
+      currentUser.value = "";
+      loginUser.value = "";
+      loginPass.value = "";
+      allJobs.value = [];
+      stats.value = {};
+      healthSources.value = [];
+      expandedId.value = null;
+    }
+
     async function fetchJobs() {
       loading.value = true;
+      loadError.value = null;
       try {
-        const resp = await fetch(`${API}/api/jobs`);
+        const resp = await apiFetch("/api/jobs");
         if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
         const data = await resp.json();
         allJobs.value = data.jobs || [];
         stats.value = data.stats || {};
-
-        // 拉取详情
         await fetchAllDetails();
       } catch (e) {
+        if (isUnauthorized(e)) return; // 已退回登录页，不报错
         console.error("获取岗位列表失败:", e);
+        loadError.value = e.message || String(e);
       } finally {
         loading.value = false;
       }
@@ -491,12 +808,13 @@ createApp({
         const batch = allJobs.value.slice(i, i + batchSize);
         await Promise.allSettled(batch.map(async (job) => {
           try {
-            const resp = await fetch(`${API}/api/jobs/${job.id}`);
+            const resp = await apiFetch(`/api/jobs/${job.id}`);
             if (resp.ok) {
               const data = await resp.json();
               job.detail = data.detail || {};
             }
           } catch (e) {
+            if (isUnauthorized(e)) return;
             console.warn(`加载详情失败 [${job.id}]:`, e);
           }
         }));
@@ -505,20 +823,24 @@ createApp({
 
     async function refreshData() {
       try {
-        await fetch(`${API}/api/jobs/refresh`, { method: "POST" });
-      } catch (e) { /* 忽略 */ }
+        await apiFetch("/api/jobs/refresh", { method: "POST" });
+      } catch (e) {
+        if (isUnauthorized(e)) return;
+        /* 刷新失败不阻塞后续读取 */
+      }
       await fetchJobs();
       await fetchHealth();
     }
 
     async function fetchHealth() {
       try {
-        const resp = await fetch(`${API}/api/health/sources?live=0`);
+        const resp = await apiFetch("/api/health/sources?live=0");
         if (resp.ok) {
           const data = await resp.json();
           healthSources.value = data.sources || [];
         }
       } catch (e) {
+        if (isUnauthorized(e)) return;
         console.error("获取数据源健康状态失败:", e);
       }
     }
@@ -558,20 +880,19 @@ createApp({
       return d.toLocaleString("zh-CN", { hour12: false });
     }
 
-    // ── 初始化 ─────────────────────────────────
-    onMounted(() => {
-      fetchJobs();
-      fetchHealth();
-    });
+    // ---------- 初始化 ----------
+    onMounted(bootstrap);
 
     return {
-      allJobs, loading, expandedId, searchQuery,
+      allJobs, loading, loadError, expandedId, searchQuery,
       activeCompany, activeProject, activeLevel, stats,
       healthSources, companyOptions, companyNames,
       projectOptions, levelOptions,
+      authed, currentUser, loginUser, loginPass, loginError, loginBusy,
       statusText, filteredJobs,
       toggleExpand, toggleCompany, toggleProject, toggleLevel,
       onSearchChange, refreshData, fetchHealth,
+      doLogin, doLogout,
       formatDate, formatDateTime,
     };
   }

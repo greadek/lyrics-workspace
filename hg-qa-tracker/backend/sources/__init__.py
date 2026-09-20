@@ -5,7 +5,7 @@
 - fetch_detail(job) -> dict           # 生成 JD 详情（无缓存，由编排器缓存）
 - liveness_url                        # 轻量可达性探测 URL
 """
-from . import mokahr, ctrip, bilibili, xiaohongshu
+from . import mokahr, ctrip, bilibili, xiaohongshu, fliggy
 
 COMPANIES: dict[str, dict] = {
     "yingjiao": {
@@ -35,6 +35,12 @@ COMPANIES: dict[str, dict] = {
         "detail": xiaohongshu.fetch_detail,
         "liveness_url": "https://job.xiaohongshu.com/",
     },
+    "fliggy": {
+        "name": "飞猪",
+        "fetch": fliggy.fetch_jobs,
+        "detail": fliggy.fetch_detail,
+        "liveness_url": "https://career.fliggy.com/off-campus/position-list",
+    },
 }
 
 # 各公司抓取超时（秒）。B站需启动无头浏览器，给更长时间。
@@ -43,4 +49,5 @@ FETCH_TIMEOUTS: dict[str, float] = {
     "ctrip": 30.0,
     "bilibili": 60.0,
     "xiaohongshu": 30.0,
+    "fliggy": 30.0,
 }

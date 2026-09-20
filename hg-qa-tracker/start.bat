@@ -4,7 +4,7 @@ echo   Hypergryph QA Job Tracker
 echo ========================================
 echo.
 echo Starting server...
-echo Browser access: http://localhost:8765
+echo Browser access: http://127.0.0.1:8765
 echo Press Ctrl+C to stop the server.
 echo.
 cd /d "%~dp0backend"

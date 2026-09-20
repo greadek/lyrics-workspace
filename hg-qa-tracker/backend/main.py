@@ -1,7 +1,7 @@
 """
 多公司 QA/测试开发岗位跟踪系统 — FastAPI 后端
 提供 REST API：岗位列表（按公司/项目/方向/级别/关键词过滤）、详情查询、刷新、
-统计、数据源健康自检
+统计、数据源健康自检。所有 /api/* 需登录（见 auth.py）。
 """
 import asyncio
 import os
@@ -9,11 +9,24 @@ from contextlib import asynccontextmanager
 from typing import Optional
 
 import uvicorn
-from fastapi import FastAPI, HTTPException, Query
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
+from fastapi import FastAPI, HTTPException, Query, Request, Response
+from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
+from pydantic import BaseModel, Field
 
+from auth import (
+    SESSION_COOKIE,
+    SESSION_TTL,
+    USING_DEFAULT_PASSWORD,
+    check_credentials,
+    clear_failures,
+    client_ip,
+    drop_session,
+    get_session,
+    is_locked,
+    new_session,
+    note_failure,
+)
 from fetcher import (
     fetch_all_jobs,
     fetch_job_detail,
@@ -27,7 +40,12 @@ from sources import COMPANIES
 # ── 应用生命周期 ──────────────────────────────────────────────
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """启动时预加载岗位数据（4 家公司；含 B站 playwright 启动约 5-10s）"""
+    """启动时预加载岗位数据（5 家公司；含 B站 playwright 启动约 5-10s）"""
+    if USING_DEFAULT_PASSWORD:
+        print(
+            "[auth] 警告：正在使用默认口令 111111，"
+            "建议设置 HG_ADMIN_PASSWORD 环境变量后重启"
+        )
     print("[server] 启动中，预加载岗位数据...")
     try:
         jobs = await fetch_all_jobs()
@@ -37,25 +55,97 @@ async def lifespan(app: FastAPI):
     yield
 
 
+# docs/openapi 在根路径、不在 /api/ 前缀下，会被下面的登录守卫漏掉。
+# 本服务只给 SPA 用，不需要 Swagger。
 app = FastAPI(
     title="QA 岗位追踪 · 多公司",
-    description="实时获取并整理鹰角网络/携程/B站/小红书社招测试开发相关岗位要求",
-    version="2.0.0",
+    description="实时获取并整理鹰角网络/携程/B站/小红书/飞猪社招测试开发相关岗位要求",
+    version="2.1.0",
     lifespan=lifespan,
+    docs_url=None,
+    redoc_url=None,
+    openapi_url=None,
 )
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+
+# ── 登录守卫 ──────────────────────────────────────────────────
+# 用中间件而非 APIRouter(prefix="/api", dependencies=[...])：后者是"失败即开放"的，
+# 未来任何一条写在 app 上的 /api/xxx 都会静默失去保护；中间件只写一次，无法遗漏。
+# 注意 /api/health 必须精确相等，否则会连带放行 /api/health/sources。
+EXEMPT = {("POST", "/api/auth/login"), ("GET", "/api/health")}
+
+
+@app.middleware("http")
+async def require_session(request: Request, call_next):
+    path = request.url.path
+    # 带尾斜杠，避免误伤 /apix；/、/static/* 一律放行
+    if not (path == "/api" or path.startswith("/api/")):
+        return await call_next(request)
+    if (request.method, path) in EXEMPT:
+        return await call_next(request)
+
+    sess = get_session(request.cookies.get(SESSION_COOKIE))
+    if sess is None:
+        return JSONResponse(
+            {"detail": "未登录或会话已过期"},
+            status_code=401,
+            headers={"WWW-Authenticate": "Cookie"},
+        )
+    request.state.user = sess["username"]
+    return await call_next(request)
+
+
+# ── 鉴权路由 ──────────────────────────────────────────────────
+class LoginBody(BaseModel):
+    username: str = Field(min_length=1, max_length=128)
+    # 必须设上界，否则超长口令会进比较逻辑
+    password: str = Field(min_length=1, max_length=256)
+
+
+# 用 def 而非 async def：凭据比较是同步逻辑，走 Starlette 线程池，不占用事件循环
+@app.post("/api/auth/login")
+def login(body: LoginBody, request: Request, response: Response):
+    """登录：校验通过后签发 session cookie"""
+    ip = client_ip(request)
+    if is_locked(ip):
+        raise HTTPException(status_code=429, detail="尝试次数过多，请稍后再试")
+    if not check_credentials(body.username, body.password):
+        note_failure(ip)
+        # 不区分用户名/口令错，避免枚举
+        raise HTTPException(status_code=401, detail="用户名或密码错误")
+
+    clear_failures(ip)
+    response.set_cookie(
+        SESSION_COOKIE,
+        new_session(body.username),
+        httponly=True,
+        samesite="lax",
+        path="/",
+        max_age=int(SESSION_TTL.total_seconds()),
+        # 本地 http 部署，不设 secure；若改用局域网 IP 访问也仍可工作
+    )
+    return {"ok": True, "username": body.username}
+
+
+@app.get("/api/auth/me")
+def me(request: Request):
+    """当前登录用户（守卫已保证有会话）"""
+    return {"username": request.state.user}
+
+
+@app.post("/api/auth/logout")
+def logout(request: Request):
+    """登出：服务端销毁 session，同时带匹配属性删除 cookie"""
+    drop_session(request.cookies.get(SESSION_COOKIE))
+    resp = JSONResponse({"ok": True})
+    resp.delete_cookie(SESSION_COOKIE, path="/", httponly=True, samesite="lax")
+    return resp
 
 
 # ── API 路由 ──────────────────────────────────────────────────
 @app.get("/api/jobs")
 async def list_jobs(
-    company: Optional[str] = Query(None, description="按公司筛选: 鹰角网络/携程/B站/小红书（也接受 source 短 key）"),
+    company: Optional[str] = Query(None, description="按公司筛选: 鹰角网络/携程/B站/小红书/飞猪（也接受 source 短 key）"),
     project: Optional[str] = Query(None, description="按项目筛选: 明日方舟, 终末地, 森空岛, UE项目..."),
     direction: Optional[str] = Query(None, description="按方向筛选: 系统向, 战斗向, 性能向, 工具向..."),
     level: Optional[str] = Query(None, description="按级别筛选: 资深/高级, 初中级, 管理"),
@@ -152,6 +242,8 @@ async def health_sources(live: bool = Query(False, description="是否执行实�
 # ── 静态文件（前端） ──────────────────────────────────────────
 frontend_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "frontend")
 if os.path.isdir(frontend_dir):
+    # 注意：此挂载免登录暴露整个 frontend/ 目录。当前只有 index.html（不含任何数据），
+    # 所以无害 —— 不要把数据文件 / 导出文件放进 frontend/。
     app.mount("/static", StaticFiles(directory=frontend_dir), name="static")
 
     @app.get("/")
@@ -163,8 +255,11 @@ if os.path.isdir(frontend_dir):
 if __name__ == "__main__":
     uvicorn.run(
         "main:app",
-        host="0.0.0.0",
+        # 只监听回环。cookie 无 secure、默认口令固定，绑 0.0.0.0 会把服务暴露到局域网。
+        # 若确实需要局域网访问：改回 "0.0.0.0" 并务必先设 HG_ADMIN_PASSWORD 换掉默认口令。
+        host="127.0.0.1",
         port=8765,
+        # reload=True 会让每次保存文件都清空内存 session（开发期每次保存都需重新登录）
         reload=True,
         log_level="info",
     )
